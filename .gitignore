@@ -1,0 +1,6 @@
+node_modules/
+cloudflared.exe
+*.bat
+*.msi
+.git/
+import-*.js
