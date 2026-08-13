@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LED户外照明客户管理系统</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="login-icon">💡</span>
+        <h1>LED户外照明客户管理系统</h1>
+        <p>欧洲大区 · 多用户协作CRM</p>
+      </div>
+      <form id="login-form" class="login-form" onsubmit="return login(event)">
+        <div class="login-field">
+          <label class="login-label">用户名</label>
+          <input type="text" id="login-username" class="login-input" placeholder="输入用户名" autocomplete="username" required>
+        </div>
+        <div class="login-field">
+          <label class="login-label">密码</label>
+          <div class="login-password-row">
+            <input type="password" id="login-password" class="login-input" placeholder="输入密码" autocomplete="current-password" required>
+            <button type="button" class="login-pw-toggle" onclick="toggleLoginPw()">👁</button>
+          </div>
+        </div>
+        <div id="login-error" class="login-error hidden"></div>
+        <button type="submit" class="btn btn-primary login-submit">登录</button>
+      </form>
+      <div class="login-hint">
+        <p>默认密码格式：用户名 + 2026</p>
+        <p>如 michelle / michelle2026</p>
+      </div>
+      <div class="login-footer">
+        <span>HPWINNER · 华普永明</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo">💡</span>
+        <span class="sidebar-title">客户管理系统</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')">
+          <span class="nav-icon">📊</span><span class="nav-text">仪表盘</span>
+        </a>
+        <a class="nav-item" data-view="customers" onclick="navigate('customers')">
+          <span class="nav-icon">🏢</span><span class="nav-text">客户管理</span>
+        </a>
+        <a class="nav-item" data-view="funnel" onclick="navigate('funnel')">
+          <span class="nav-icon">🔻</span><span class="nav-text">销售漏斗</span>
+        </a>
+        <a class="nav-item" data-view="team" onclick="navigate('team')">
+          <span class="nav-icon">👥</span><span class="nav-text">团队</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="online-users" id="online-users-mini"></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="page-title">仪表盘</h2>
+        </div>
+        <div class="header-right">
+          <div class="online-indicator" id="online-indicator"></div>
+          <div class="user-badge" id="user-badge"></div>
+          <button class="btn btn-ghost btn-sm" onclick="openPwModal()">🔑 修改密码</button>
+          <button class="btn btn-ghost btn-sm" onclick="logout()">退出</button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="content" id="content">
+        <div class="loading"><div class="spinner"></div><p>加载中...</p></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Customer Form Modal -->
+  <div id="customer-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">新增客户</h3>
+        <button class="modal-close" onclick="closeCustomerModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 id="confirm-title">确认</h3>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeConfirm()">取消</button>
+        <button class="btn btn-danger" id="confirm-ok-btn">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="pw-modal" class="modal-overlay hidden">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>修改密码</h3>
+        <button class="modal-close" onclick="closePwModal()">✕</button>
+      </div>
+      <form id="pw-form" onsubmit="return submitChangePw(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">当前密码 <span class="req">*</span></label>
+            <input type="password" class="form-input" name="currentPassword" required autocomplete="current-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">新密码 <span class="req">*</span></label>
+            <input type="password" class="form-input" name="newPassword" required autocomplete="new-password" minlength="6" placeholder="至少6位">
+          </div>
+          <div class="form-group">
+            <label class="form-label">确认新密码 <span class="req">*</span></label>
+            <input type="password" class="form-input" name="confirmPassword" required autocomplete="new-password" placeholder="再次输入新密码">
+          </div>
+          <div id="pw-error" class="login-error hidden" style="margin-bottom:0"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closePwModal()">取消</button>
+          <button type="submit" class="btn btn-primary">确认修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Followups Modal -->
+  <div id="followup-modal" class="modal-overlay hidden">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="followup-modal-title">跟进记录</h3>
+        <button class="modal-close" onclick="closeFollowupModal()">✕</button>
+      </div>
+      <div class="modal-body" id="followup-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
