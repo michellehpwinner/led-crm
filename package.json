@@ -1,0 +1,14 @@
+{
+  "name": "led-crm",
+  "version": "1.0.0",
+  "description": "LED户外照明行业客户管理系统 - 多用户协作CRM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "xlsx": "^0.18.5"
+  }
+}
